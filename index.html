@@ -39,3 +39,198 @@ body{
 }
 #loading h1{ font-size:42px; animation:pulse 2s infinite; }
 @keyframes pulse{ 0%{transform:scale(1)} 100%{transform:scale(1.05)} }
+@keyframes fadeOut{ to{opacity:0; pointer-events:none;} }
+
+.container{ max-width:480px; margin:auto; padding:16px; }
+
+.panel{
+  background:linear-gradient(180deg,var(--panel),transparent);
+  border-radius:20px;
+  padding:16px;
+  margin-bottom:16px;
+  box-shadow:0 12px 30px rgba(0,0,0,.4);
+}
+
+#clicks{ font-size:36px; font-weight:800; margin:10px 0; }
+
+#tap{
+  width:100%;
+  padding:26px;
+  font-size:26px;
+  font-weight:800;
+  border:none;
+  border-radius:22px;
+  background:linear-gradient(135deg,var(--accent),#22c55e);
+  color:#06210f;
+  cursor:pointer;
+  transition:.08s;
+}
+#tap:active{ transform:scale(.95); }
+
+.stats{
+  display:flex;
+  justify-content:space-between;
+  opacity:.8;
+}
+
+.tabs button{
+  width:48%;
+  margin:5px 1%;
+  padding:10px;
+  border:none;
+  border-radius:14px;
+  background:var(--accent2);
+  color:#081226;
+  font-weight:600;
+}
+
+.hidden{ display:none; }
+
+.upgrade{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin:10px 0;
+  padding:12px;
+  border-radius:14px;
+  background:rgba(255,255,255,.06);
+}
+
+.upgrade button{
+  background:var(--accent);
+  border:none;
+  border-radius:12px;
+  padding:8px 14px;
+  font-weight:600;
+}
+
+.particle{
+  position:absolute;
+  pointer-events:none;
+  font-weight:700;
+  color:var(--accent);
+  animation:floatUp .8s forwards;
+}
+@keyframes floatUp{
+  from{opacity:1; transform:translateY(0)}
+  to{opacity:0; transform:translateY(-60px)}
+}
+</style>
+</head>
+<body>
+
+<div id="loading"><h1>Tap Trials</h1></div>
+
+<div class="container">
+
+<div class="panel">
+  <h1>Tap Trials</h1>
+  <div id="clicks">0</div>
+  <button id="tap">TAP</button>
+  <div class="stats">
+    <div>Power: <b id="power">1</b></div>
+    <div>CPS: <b id="cps">0</b></div>
+  </div>
+</div>
+
+<div class="panel tabs">
+  <button onclick="showTab('click')">Click</button>
+  <button onclick="showTab('auto')">Auto</button>
+</div>
+
+<div class="panel" id="tab-click"></div>
+<div class="panel hidden" id="tab-auto"></div>
+
+</div>
+
+<script>
+let data = JSON.parse(localStorage.getItem("tapTrialsSave")) || {
+  clicks:0, power:1, cps:0
+};
+
+function fmt(n){
+  if(n<1e3) return Math.floor(n);
+  const s=["K","M","B","T","Qa","Qi"];
+  let i=Math.floor(Math.log10(n)/3);
+  return (n/Math.pow(1e3,i)).toFixed(2).replace(".00","")+s[i-1];
+}
+
+function particle(x,y,text){
+  const p=document.createElement("div");
+  p.className="particle";
+  p.textContent=text;
+  p.style.left=(x+Math.random()*10-5)+"px";
+  p.style.top=(y+Math.random()*10-5)+"px";
+  document.body.appendChild(p);
+  setTimeout(()=>p.remove(),800);
+}
+
+const tap=document.getElementById("tap");
+tap.addEventListener("pointerdown",e=>{
+  data.clicks+=data.power;
+  particle(e.clientX,e.clientY,"+"+fmt(data.power));
+  update();
+});
+
+const clickUpgrades=[
+  {name:"+1 Power", cost:10, add:1},
+  {name:"+5 Power", cost:100, add:5},
+  {name:"+25 Power", cost:500, add:25},
+  {name:"+100 Power", cost:2500, add:100}
+];
+
+const autoUpgrades=[
+  {name:"+1 CPS", cost:50, add:1},
+  {name:"+5 CPS", cost:300, add:5},
+  {name:"+20 CPS", cost:1500, add:20}
+];
+
+function render(){
+  document.getElementById("tab-click").innerHTML="<h2>Click Upgrades</h2>";
+  clickUpgrades.forEach(u=>{
+    const d=document.createElement("div");
+    d.className="upgrade";
+    d.innerHTML=`${u.name}<button ${data.clicks<u.cost?"disabled":""}>${fmt(u.cost)}</button>`;
+    d.querySelector("button").onclick=()=>{
+      data.clicks-=u.cost;
+      data.power+=u.add;
+      u.cost=Math.floor(u.cost*1.8);
+      update();
+    };
+    document.getElementById("tab-click").appendChild(d);
+  });
+
+  document.getElementById("tab-auto").innerHTML="<h2>Auto Upgrades</h2>";
+  autoUpgrades.forEach(u=>{
+    const d=document.createElement("div");
+    d.className="upgrade";
+    d.innerHTML=`${u.name}<button ${data.clicks<u.cost?"disabled":""}>${fmt(u.cost)}</button>`;
+    d.querySelector("button").onclick=()=>{
+      data.clicks-=u.cost;
+      data.cps+=u.add;
+      u.cost=Math.floor(u.cost*2);
+      update();
+    };
+    document.getElementById("tab-auto").appendChild(d);
+  });
+}
+
+function update(){
+  document.getElementById("clicks").textContent=fmt(data.clicks);
+  document.getElementById("power").textContent=fmt(data.power);
+  document.getElementById("cps").textContent=fmt(data.cps);
+  localStorage.setItem("tapTrialsSave",JSON.stringify(data));
+  render();
+}
+
+function showTab(t){
+  document.getElementById("tab-click").classList.add("hidden");
+  document.getElementById("tab-auto").classList.add("hidden");
+  document.getElementById("tab-"+t).classList.remove("hidden");
+}
+
+setInterval(()=>{ data.clicks+=data.cps; update(); },1000);
+update();
+</script>
+</body>
+</html>
