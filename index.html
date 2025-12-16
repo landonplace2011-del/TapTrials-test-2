@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tap Trials</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#0b0f1f;
+  --panel:rgba(255,255,255,0.08);
+  --accent:#4ade80;
+  --accent2:#60a5fa;
+  --text:#e5e7eb;
+}
+
+*{ box-sizing:border-box; font-family:'Poppins',system-ui,sans-serif; }
+
+body{
+  margin:0;
+  background:radial-gradient(circle at top, #12183a, #05070f);
+  color:var(--text);
+  text-align:center;
+}
+
+#loading{
+  position:fixed;
+  inset:0;
+  background:#05070f;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+  animation:fadeOut 1s ease forwards;
+  animation-delay:4s;
+}
+#loading h1{ font-size:42px; animation:pulse 2s infinite; }
+@keyframes pulse{ 0%{transform:scale(1)} 100%{transform:scale(1.05)} }
